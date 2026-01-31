@@ -1,3 +1,12 @@
+# Cool Website made for CCSS Networking Hackathon
+By Camilo Gomez, Yu Xinge, Sedrick Tam
+
+# Program
+Tracks temperature and sends alert for plants who are in danger.
+
+
+
+
 # computer-networks-hackathon-ssi-canada
 Template for the Computer Networks Hackathon in partnership with [SSi Canada](https://www.ssicanada.com) on January 31st, 2026.
 
