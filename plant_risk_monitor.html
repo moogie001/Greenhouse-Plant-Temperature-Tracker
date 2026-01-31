@@ -1,0 +1,4755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Temperature Risk Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #faf8f3;
+            --dark-green: #1a3a1f;
+            --forest-green: #2d5f3d;
+            --sage: #8b9d83;
+            --terracotta: #c86b4a;
+            --warning-orange: #e6934e;
+            --danger-red: #d64545;
+            --text-dark: #2c2c2c;
+            --text-light: #6b6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(138, 157, 131, 0.03) 2px, rgba(138, 157, 131, 0.03) 4px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--sage);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            font-weight: 300;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        input[type="datetime-local"] {
+            flex: 1;
+            background: var(--cream);
+            border: 2px solid var(--sage);
+            border-radius: 16px;
+            padding: 1.2rem 1.5rem;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--forest-green);
+            background: white;
+        }
+
+        button {
+            background: var(--forest-green);
+            border: none;
+            border-radius: 16px;
+            padding: 1.2rem 2.5rem;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 58, 31, 0.2);
+        }
+
+        .temperature-display {
+            background: linear-gradient(135deg, var(--forest-green), var(--dark-green));
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: white;
+            box-shadow: 0 12px 48px rgba(26, 58, 31, 0.3);
+        }
+
+        .temp-label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .temp-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 6rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .temp-timestamp {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        .plants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .plant-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        .plant-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--sage), var(--forest-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .danger-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: white;
+        }
+
+        .danger-low { background: var(--forest-green); }
+        .danger-moderate { background: var(--warning-orange); }
+        .danger-high { background: var(--terracotta); }
+        .danger-critical { background: var(--danger-red); animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .plant-content {
+            padding: 1.5rem;
+        }
+
+        .plant-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .plant-scientific {
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .plant-details {
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .temp-range {
+            background: var(--cream);
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .temp-range-label {
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 0.3rem;
+        }
+
+        .add-plant-btn {
+            background: var(--cream);
+            border: 2px dashed var(--sage);
+            border-radius: 20px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 400px;
+        }
+
+        .add-plant-btn:hover {
+            border-color: var(--forest-green);
+            background: white;
+        }
+
+        .add-icon {
+            font-size: 4rem;
+            color: var(--sage);
+            margin-bottom: 1rem;
+        }
+
+        .add-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            background: var(--cream);
+            border: 2px solid var(--sage);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--forest-green);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-cancel {
+            background: var(--sage);
+        }
+
+        .btn-cancel:hover {
+            background: var(--text-light);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .delete-btn {
+            background: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .delete-btn:hover {
+            background: #b33939;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-month {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-green);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: var(--cream);
+            border: 2px solid var(--sage);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--forest-green);
+            color: white;
+            border-color: var(--forest-green);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-light);
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background: var(--cream);
+            color: var(--text-light);
+            position: relative;
+        }
+
+        .calendar-day.has-data {
+            background: white;
+            color: var(--text-dark);
+            border: 2px solid var(--sage);
+            font-weight: 600;
+        }
+
+        .calendar-day.has-data:hover {
+            background: var(--forest-green);
+            color: white;
+            border-color: var(--forest-green);
+            transform: scale(1.05);
+        }
+
+        .calendar-day.selected {
+            background: var(--dark-green);
+            color: white;
+            border-color: var(--dark-green);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day.has-data::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background: var(--forest-green);
+            border-radius: 50%;
+        }
+
+        .calendar-day.selected::after {
+            background: white;
+        }
+
+        .time-picker {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--cream);
+        }
+
+        .time-label {
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .time-slot {
+            background: var(--cream);
+            border: 2px solid var(--sage);
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', monospace;
+            font-size: 0.9rem;
+        }
+
+        .time-slot:hover {
+            background: var(--forest-green);
+            color: white;
+            border-color: var(--forest-green);
+        }
+
+        .time-slot.selected {
+            background: var(--dark-green);
+            color: white;
+            border-color: var(--dark-green);
+        }
+
+        .time-slot .temp-preview {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            opacity: 0.8;
+        }
+
+        .confirm-selection {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .temp-value {
+                font-size: 4rem;
+            }
+
+            .plants-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-grid {
+                gap: 0.3rem;
+            }
+
+            .calendar-day {
+                font-size: 0.85rem;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌿 Plant Risk Monitor</h1>
+            <p class="subtitle">Temperature-based plant health assessment</p>
+        </header>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-month" id="calendarMonth">January 2026</div>
+                <div class="calendar-nav">
+                    <button class="nav-btn" onclick="previousMonth()">‹</button>
+                    <button class="nav-btn" onclick="nextMonth()">›</button>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be generated here -->
+            </div>
+
+            <div class="time-picker" id="timePicker" style="display: none;">
+                <div class="time-label">Select Time (Available readings marked)</div>
+                <div class="time-slots" id="timeSlots">
+                    <!-- Time slots will be generated here -->
+                </div>
+                <div class="confirm-selection">
+                    <button onclick="confirmSelection()" id="confirmBtn" disabled>Select This Reading</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="temperatureDisplay" class="temperature-display" style="display: none;">
+            <div class="temp-label">Current Temperature Reading</div>
+            <div class="temp-value" id="tempValue">--°C</div>
+            <div class="temp-timestamp" id="tempTimestamp">No data selected</div>
+        </div>
+
+        <div class="plants-grid" id="plantsGrid">
+            <div class="empty-state">
+                <div class="empty-icon">🪴</div>
+                <p>No plants added yet. Click "Add Plant" to start monitoring.</p>
+            </div>
+        </div>
+
+        <div class="add-plant-btn" onclick="openModal()">
+            <div class="add-icon">+</div>
+            <div class="add-text">Add Plant</div>
+        </div>
+    </div>
+
+    <div id="plantModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Add New Plant</h2>
+            <form id="plantForm" onsubmit="addPlant(event)">
+                <div class="form-group">
+                    <label class="form-label">Plant Name *</label>
+                    <input type="text" id="plantName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Scientific Name</label>
+                    <input type="text" id="plantScientific">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="plantDescription"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Image URL (or emoji)</label>
+                    <input type="text" id="plantImage" placeholder="🌱">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Minimum Safe Temperature (°C) *</label>
+                    <input type="number" id="plantMinTemp" step="0.1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Maximum Safe Temperature (°C) *</label>
+                    <input type="number" id="plantMaxTemp" step="0.1" required>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit">Add Plant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Actual sensor data from Python
+        let allData = [
+  {
+    "time": "2026-01-22T08:21:42.684+00:00",
+    "fPort": 0,
+    "battery": null,
+    "object_data": {
+      "event": "Mac command",
+      "fPort": 0,
+      "length": 0
+    },
+    "rssi": -93,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-22T08:21:43.963+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "deviceType": 14,
+      "firmwareVersion": "3.2.13",
+      "hardwareVersion": "3.0"
+    },
+    "rssi": -95,
+    "snr": 9.5
+  },
+  {
+    "time": "2026-01-22T08:21:46.348+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -92,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-22T08:21:48.739+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -93,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-22T08:21:51.129+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "lastDownlinkSnr": 2,
+      "event": "LINK_QUALITY",
+      "subBand": 0,
+      "lastDownlinkRssi": -105
+    },
+    "rssi": -103,
+    "snr": 5.5
+  },
+  {
+    "time": "2026-01-22T08:38:30.122+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-22T08:53:30.286+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-22T09:23:30.615+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-22T09:38:30.780+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-22T09:53:30.944+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-22T10:08:31.107+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-22T10:38:31.435+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -101,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-22T10:53:31.603+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-22T11:08:31.764+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -98,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-22T12:08:32.422+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-22T12:53:32.916+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -98,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-22T13:23:33.243+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -99,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-22T13:38:33.407+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-22T14:08:33.738+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -99,
+    "snr": -1.2
+  },
+  {
+    "time": "2026-01-22T14:38:34.063+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -97,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-22T14:53:34.229+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-22T15:08:34.394+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-22T15:23:34.556+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -99,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-22T16:53:35.543+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "event": "UNKNOWN_EVENT_TYPE",
+      "rawType": "0D"
+    },
+    "rssi": -99,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-22T17:53:36.202+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "rawType": "0D",
+      "event": "UNKNOWN_EVENT_TYPE"
+    },
+    "rssi": -98,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-22T18:38:36.693+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {},
+    "rssi": -98,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-22T19:23:37.188+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.9
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-22T19:53:37.517+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.9
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-22T20:08:37.680+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-22T20:38:39.203+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-22T20:38:48.165+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "radioCommError": 0,
+      "batteryLevel": 3.1,
+      "accumulationCount": 97,
+      "tamperState": 1,
+      "tamperSinceLastReset": 0,
+      "batteryLow": 0,
+      "errorWithLastDownlink": 0
+    },
+    "rssi": -101,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-22T20:53:38.173+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-22T21:08:38.336+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 11.7
+    },
+    "rssi": -103,
+    "snr": 5
+  },
+  {
+    "time": "2026-01-22T23:23:39.813+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6,
+      "temperature": 22
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-22T23:53:40.141+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22
+    },
+    "rssi": -101,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-23T01:08:40.965+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -99,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T01:23:41.127+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.5
+    },
+    "rssi": -99,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T01:53:41.458+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -101,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-23T03:08:42.278+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.5
+    },
+    "rssi": -97,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-23T03:38:42.607+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 11.5
+    },
+    "rssi": -99,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-23T03:53:42.770+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7,
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T04:23:43.098+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.7
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-23T04:38:43.263+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T04:53:43.429+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7,
+      "temperature": 21.5
+    },
+    "rssi": -98,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-23T05:08:43.591+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.6
+    },
+    "rssi": -98,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-23T05:23:43.757+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6,
+      "temperature": 21.6
+    },
+    "rssi": -98,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-23T05:38:43.920+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-23T05:53:44.085+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -98,
+    "snr": 9.2
+  },
+  {
+    "time": "2026-01-23T06:08:44.249+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -97,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-23T06:38:44.578+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -99,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-23T06:53:44.744+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -98,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-23T07:23:45.071+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 11.5
+    },
+    "rssi": -99,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-23T07:38:45.235+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-23T07:53:45.399+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 11.5
+    },
+    "rssi": -98,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T08:23:46.912+00:00",
+    "fPort": null,
+    "battery": null,
+    "object_data": {},
+    "rssi": null,
+    "snr": null
+  },
+  {
+    "time": "2026-01-23T08:38:45.893+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 9.8
+  },
+  {
+    "time": "2026-01-23T08:53:46.059+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.5,
+      "temperature": 21.8
+    },
+    "rssi": -99,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-23T09:08:46.222+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-23T09:23:46.386+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-23T09:53:46.713+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6
+    },
+    "rssi": -101,
+    "snr": 3.5
+  },
+  {
+    "time": "2026-01-23T10:08:46.877+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6
+    },
+    "rssi": -98,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-23T10:38:47.208+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-23T11:08:47.537+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-23T11:53:48.030+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6,
+      "temperature": 21.8
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-23T12:23:48.358+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6,
+      "temperature": 21.8
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T12:53:48.689+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-23T14:38:49.838+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-23T15:38:50.495+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-23T15:53:50.658+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -99,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T16:23:50.989+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -101,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-23T16:38:51.153+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.4,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.8
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-23T16:53:51.314+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -99,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-23T17:38:51.809+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7,
+      "temperature": 21.4
+    },
+    "rssi": -99,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-23T17:53:51.973+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7,
+      "temperature": 21.8
+    },
+    "rssi": -99,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-23T18:38:52.468+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7,
+      "temperature": 21.5
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-23T19:23:52.960+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 11.6
+    },
+    "rssi": -104,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-23T19:53:53.288+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T20:38:54.975+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.9
+    },
+    "rssi": -101,
+    "snr": 5.5
+  },
+  {
+    "time": "2026-01-23T20:39:03.939+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "accumulationCount": 96,
+      "tamperSinceLastReset": 0,
+      "radioCommError": 0,
+      "batteryLevel": 3.1,
+      "errorWithLastDownlink": 0,
+      "tamperState": 1,
+      "batteryLow": 0
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-23T21:08:54.112+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.8,
+      "temperature": 21.8
+    },
+    "rssi": -104,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-23T21:23:54.276+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12
+    },
+    "rssi": -100,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-23T21:38:54.440+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-23T22:08:54.766+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.9,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7
+    },
+    "rssi": -101,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-23T22:23:54.930+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.8,
+      "temperature": 21.5
+    },
+    "rssi": -103,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-23T22:38:55.098+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.4,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.7
+    },
+    "rssi": -103,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-23T23:08:55.425+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.3
+    },
+    "rssi": -104,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-23T23:23:55.590+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7
+    },
+    "rssi": -101,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-23T23:38:55.754+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.4,
+      "humidity": 12.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-24T00:08:56.084+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.4
+    },
+    "rssi": -101,
+    "snr": 5.2
+  },
+  {
+    "time": "2026-01-24T02:08:57.397+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-24T02:23:57.563+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.4,
+      "temperature": 21.5
+    },
+    "rssi": -102,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-24T02:38:57.727+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.4,
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-24T03:23:58.221+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.4
+    },
+    "rssi": -103,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-24T03:38:58.383+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 12.3,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-24T03:53:58.549+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.2,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4
+    },
+    "rssi": -103,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-24T04:23:58.876+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.3
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-24T05:08:59.369+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.3
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-24T06:09:00.029+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.2
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-24T06:39:00.357+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.2,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T07:24:00.850+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.2
+    },
+    "rssi": -103,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-24T07:54:01.177+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-24T08:09:01.343+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 12.1
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T08:24:02.692+00:00",
+    "fPort": null,
+    "battery": null,
+    "object_data": {},
+    "rssi": null,
+    "snr": null
+  },
+  {
+    "time": "2026-01-24T08:39:01.672+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 12
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-24T09:09:01.999+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.2,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7
+    },
+    "rssi": -104,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-24T09:54:02.495+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 12
+    },
+    "rssi": -102,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-24T10:24:02.824+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-24T10:39:02.985+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -100,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-24T11:39:03.646+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T12:24:04.136+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.9
+    },
+    "rssi": -103,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-24T13:09:04.629+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12,
+      "temperature": 21.5
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-24T13:39:04.961+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1
+    },
+    "rssi": -103,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-24T13:54:05.124+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12
+    },
+    "rssi": -102,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-24T14:24:05.451+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-24T14:39:05.615+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -102,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-24T15:09:05.947+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-24T15:39:06.274+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12,
+      "temperature": 21.4
+    },
+    "rssi": -103,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-24T15:54:06.439+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-24T16:09:06.603+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.1
+    },
+    "rssi": -102,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-24T16:24:06.768+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T17:09:07.262+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.9
+    },
+    "rssi": -99,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-24T17:54:07.755+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12
+    },
+    "rssi": -104,
+    "snr": 4.8
+  },
+  {
+    "time": "2026-01-24T18:09:07.919+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-24T18:39:08.246+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.1
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-24T18:54:08.412+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 12.1
+    },
+    "rssi": -104,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T19:09:08.575+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -104,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-24T20:24:09.397+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12,
+      "temperature": 21.7
+    },
+    "rssi": -100,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-24T20:39:09.539+00:00",
+    "fPort": 0,
+    "battery": null,
+    "object_data": {
+      "length": 0,
+      "event": "Mac command",
+      "fPort": 0
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-24T20:39:13.153+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "lastDownlinkSnr": 1,
+      "lastDownlinkRssi": -107,
+      "event": "LINK_QUALITY",
+      "subBand": 0
+    },
+    "rssi": -102,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-24T21:09:09.892+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-24T22:09:10.546+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-24T22:24:10.711+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 12
+    },
+    "rssi": -100,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-24T22:39:10.875+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-24T23:09:11.205+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-24T23:24:11.368+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.1
+    },
+    "rssi": -104,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-24T23:54:11.697+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T00:39:12.191+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.2
+    },
+    "rssi": -100,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-25T01:54:13.013+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.3
+    },
+    "rssi": -105,
+    "snr": 5.2
+  },
+  {
+    "time": "2026-01-25T02:39:13.508+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.4,
+      "temperature": 21.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -107,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-25T03:24:14.001+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.4
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-25T03:39:14.164+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 12.4
+    },
+    "rssi": -103,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-25T04:39:14.821+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.4
+    },
+    "rssi": -104,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-25T04:54:14.985+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.6
+    },
+    "rssi": -104,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-25T05:24:15.316+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 12.3
+    },
+    "rssi": -102,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-25T06:24:15.971+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.6,
+      "temperature": 21.5
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-25T06:54:16.300+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 12.5
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-25T07:09:16.464+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.4,
+      "humidity": 12.6
+    },
+    "rssi": -102,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T07:54:16.959+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.5,
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-25T08:09:17.124+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -102,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-25T08:24:18.469+00:00",
+    "fPort": null,
+    "battery": null,
+    "object_data": {},
+    "rssi": null,
+    "snr": null
+  },
+  {
+    "time": "2026-01-25T08:54:17.615+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-25T11:09:19.093+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -104,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-25T11:39:19.423+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.8
+    },
+    "rssi": -103,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-25T12:39:20.082+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.8
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-25T13:09:20.409+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.7,
+      "temperature": 21.6
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-25T13:24:20.573+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.8,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -103,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T13:54:20.902+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-25T14:09:21.067+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-25T14:24:21.233+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -104,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-25T15:09:21.724+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T15:24:21.888+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -105,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-25T15:39:22.054+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.8
+    },
+    "rssi": -104,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-25T16:24:22.547+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.7,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9
+    },
+    "rssi": -103,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-25T17:24:23.204+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.7
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-25T17:54:23.532+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.7
+    },
+    "rssi": -102,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-25T18:09:23.696+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 12.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-25T18:24:23.862+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.9,
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-25T18:54:24.190+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.8,
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-25T19:09:24.356+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 12.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-25T19:39:24.683+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 12.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -105,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T19:54:24.847+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 12.9
+    },
+    "rssi": -104,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-25T20:24:25.178+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 22.1,
+      "humidity": 12.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-25T20:39:26.533+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 22.3,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.7
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-25T20:39:35.497+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "batteryLow": 0,
+      "tamperState": 1,
+      "accumulationCount": 96,
+      "radioCommError": 0,
+      "batteryLevel": 3.1,
+      "tamperSinceLastReset": 0,
+      "errorWithLastDownlink": 0
+    },
+    "rssi": -101,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-25T21:09:25.668+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.7,
+      "temperature": 22.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-25T21:39:25.994+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 23,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.6
+    },
+    "rssi": -99,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-25T21:54:26.161+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.5,
+      "temperature": 23.1
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-25T22:39:26.650+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 23.4,
+      "humidity": 12.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-25T23:09:26.975+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.4,
+      "temperature": 23.5
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-26T00:09:27.631+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.9,
+      "humidity": 12.4
+    },
+    "rssi": -104,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-26T00:24:27.796+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.7,
+      "humidity": 12.5
+    },
+    "rssi": -105,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T00:39:27.961+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.7,
+      "humidity": 12.4
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-26T00:54:28.122+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.5
+    },
+    "rssi": -104,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T01:09:28.287+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.4,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.4
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-26T01:39:28.614+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22.2,
+      "humidity": 12.5
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-26T01:54:28.780+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.6,
+      "temperature": 22,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T02:09:28.944+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.5,
+      "temperature": 22
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-26T02:24:29.106+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22,
+      "humidity": 12.5
+    },
+    "rssi": -103,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-26T03:09:29.599+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 22
+    },
+    "rssi": -103,
+    "snr": 5.2
+  },
+  {
+    "time": "2026-01-26T03:39:29.928+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.6
+    },
+    "rssi": -101,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T04:09:30.258+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.5,
+      "temperature": 21.8
+    },
+    "rssi": -103,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-26T04:54:30.751+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.5,
+      "temperature": 21.7
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-26T06:09:31.573+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.4
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T06:39:31.901+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 12.3
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-26T07:09:32.228+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 12.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-26T07:39:32.557+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.3
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-26T07:54:32.721+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-26T08:24:33.050+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1
+    },
+    "rssi": -101,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-26T08:24:34.233+00:00",
+    "fPort": 0,
+    "battery": null,
+    "object_data": {
+      "fPort": 0,
+      "event": "Mac command",
+      "length": 0
+    },
+    "rssi": -101,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-26T08:39:33.213+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.2,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-26T08:54:33.379+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T09:09:33.543+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-26T09:39:33.872+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-26T10:09:34.202+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.9
+    },
+    "rssi": -98,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T10:24:34.367+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-26T11:24:35.022+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 11.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-26T12:09:35.514+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-26T12:54:36.007+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.7
+    },
+    "rssi": -101,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-26T13:09:36.172+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -98,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-26T13:24:36.336+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-26T13:39:36.502+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -98,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-26T14:24:36.995+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -98,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-26T14:39:37.158+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -98,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-26T14:54:37.323+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.4
+    },
+    "rssi": -98,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-26T15:39:37.817+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 11.3
+    },
+    "rssi": -98,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-26T16:24:38.310+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.3,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9
+    },
+    "rssi": -97,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T16:39:38.473+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 11.2,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 5.5
+  },
+  {
+    "time": "2026-01-26T17:24:38.967+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.1
+    },
+    "rssi": -99,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-26T17:54:39.297+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.1,
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-26T18:09:39.461+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 11
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-26T18:24:39.623+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 11.2,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-26T19:09:40.118+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.1,
+      "temperature": 21.6
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-26T19:24:40.284+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.1
+    },
+    "rssi": -104,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T19:39:40.447+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 11.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T20:24:40.942+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.2,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -101,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-26T20:39:42.300+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-26T20:39:51.262+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "tamperState": 1,
+      "radioCommError": 0,
+      "tamperSinceLastReset": 0,
+      "errorWithLastDownlink": 0,
+      "batteryLow": 0,
+      "batteryLevel": 3.1,
+      "accumulationCount": 96
+    },
+    "rssi": -103,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-26T20:54:41.269+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8,
+      "humidity": 11.2
+    },
+    "rssi": -101,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-26T23:09:42.745+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-26T23:24:42.911+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 11.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T00:09:43.406+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11,
+      "temperature": 21.7
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T00:24:43.567+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-27T00:39:43.733+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.2
+    },
+    "rssi": -101,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-27T00:54:43.897+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.1
+    },
+    "rssi": -101,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-27T02:09:44.718+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T02:54:45.212+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.2,
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T03:09:45.375+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T03:24:45.541+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.1
+    },
+    "rssi": -98,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T04:39:46.361+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.1
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-27T04:54:46.527+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.2
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T05:09:46.689+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-27T05:39:47.021+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -102,
+    "snr": 5.2
+  },
+  {
+    "time": "2026-01-27T06:09:47.350+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 11.2,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -100,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-27T06:39:47.676+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.3,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -100,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T07:39:48.335+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9,
+      "humidity": 11.2
+    },
+    "rssi": -98,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-27T07:54:48.498+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 11.3
+    },
+    "rssi": -99,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T08:09:48.663+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.4
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T08:24:50.011+00:00",
+    "fPort": null,
+    "battery": null,
+    "object_data": {},
+    "rssi": null,
+    "snr": null
+  },
+  {
+    "time": "2026-01-27T08:39:48.991+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.3,
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T08:54:49.156+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 11.3
+    },
+    "rssi": -103,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T10:39:50.307+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-27T10:54:50.470+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.3,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -99,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-27T11:09:50.636+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.3
+    },
+    "rssi": -99,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T11:54:51.128+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T12:09:51.294+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.3
+    },
+    "rssi": -99,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T12:39:51.621+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.4,
+      "temperature": 21.8
+    },
+    "rssi": -99,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T13:09:51.951+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "humidity": 11.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-27T13:39:52.280+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T13:54:52.444+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-27T14:24:52.775+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.5
+    },
+    "rssi": -103,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-27T14:54:53.102+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.4,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -101,
+    "snr": 9
+  },
+  {
+    "time": "2026-01-27T15:39:53.593+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6
+    },
+    "rssi": -102,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-27T16:09:53.923+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-27T16:39:54.254+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 11.6,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -105,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T17:09:54.583+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.5,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -102,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T17:39:54.909+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.6,
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T17:54:55.076+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -105,
+    "snr": 5.2
+  },
+  {
+    "time": "2026-01-27T18:24:55.402+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -99,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-27T18:39:55.567+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.4,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -102,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T19:24:56.060+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.6
+    },
+    "rssi": -101,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-27T19:39:56.224+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 11.7,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-27T19:54:56.392+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.7
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-27T20:39:58.077+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.8
+    },
+    "rssi": -101,
+    "snr": 7.8
+  },
+  {
+    "time": "2026-01-27T20:40:07.041+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "batteryLow": 0,
+      "accumulationCount": 96,
+      "tamperState": 1,
+      "radioCommError": 0,
+      "tamperSinceLastReset": 0,
+      "errorWithLastDownlink": 0,
+      "batteryLevel": 3.1
+    },
+    "rssi": -103,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-27T20:54:57.049+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 11.7
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-27T21:24:57.376+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -103,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-27T21:54:57.705+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 11.9
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-27T22:09:57.869+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 11.9,
+      "temperature": 21.5
+    },
+    "rssi": -104,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-27T22:54:58.362+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 11.9
+    },
+    "rssi": -102,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-27T23:24:58.692+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 11.8,
+      "temperature": 21.4,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-28T00:24:59.348+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12
+    },
+    "rssi": -107,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-28T01:55:00.333+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1,
+      "temperature": 21.5
+    },
+    "rssi": -101,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-28T02:10:00.499+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-28T02:40:00.826+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9
+    },
+    "rssi": -108,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-28T02:55:00.992+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-28T03:25:01.322+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12,
+      "temperature": 21.6
+    },
+    "rssi": -104,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-28T03:40:01.488+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1
+    },
+    "rssi": -103,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-28T03:55:01.648+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12
+    },
+    "rssi": -102,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-28T04:10:01.816+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.1
+    },
+    "rssi": -103,
+    "snr": 8.5
+  },
+  {
+    "time": "2026-01-28T04:55:02.310+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-28T05:10:02.473+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.7,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12
+    },
+    "rssi": -101,
+    "snr": 8
+  },
+  {
+    "time": "2026-01-28T05:25:02.635+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 8.8
+  },
+  {
+    "time": "2026-01-28T05:40:02.801+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1,
+      "temperature": 21.9
+    },
+    "rssi": -107,
+    "snr": 5.5
+  },
+  {
+    "time": "2026-01-28T06:10:03.132+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -104,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-28T06:25:03.295+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.1
+    },
+    "rssi": -101,
+    "snr": 5.8
+  },
+  {
+    "time": "2026-01-28T06:40:03.457+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.5,
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-28T06:55:03.623+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -101,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-28T07:25:03.952+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.2
+    },
+    "rssi": -102,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-28T07:55:04.280+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5
+    },
+    "rssi": -103,
+    "snr": 7.5
+  },
+  {
+    "time": "2026-01-28T08:10:04.443+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.8,
+      "humidity": 12,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-28T08:25:04.608+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.2,
+      "temperature": 21.6
+    },
+    "rssi": -107,
+    "snr": 6.8
+  },
+  {
+    "time": "2026-01-28T08:25:05.791+00:00",
+    "fPort": 0,
+    "battery": null,
+    "object_data": {
+      "length": 0,
+      "event": "Mac command",
+      "fPort": 0
+    },
+    "rssi": -102,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-28T08:55:04.936+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12.1
+    },
+    "rssi": -105,
+    "snr": 6.2
+  },
+  {
+    "time": "2026-01-28T09:40:05.431+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12,
+      "temperature": 21.6
+    },
+    "rssi": -103,
+    "snr": 7
+  },
+  {
+    "time": "2026-01-28T09:55:05.595+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.2,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -102,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-28T10:25:05.924+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "temperature": 21.5,
+      "eventType": "PERIODIC_REPORT"
+    },
+    "rssi": -103,
+    "snr": 7.2
+  },
+  {
+    "time": "2026-01-28T10:40:06.088+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.9,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.1
+    },
+    "rssi": -107,
+    "snr": 6
+  },
+  {
+    "time": "2026-01-28T10:55:06.253+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.7,
+      "humidity": 12
+    },
+    "rssi": -103,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-28T11:40:06.746+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.6,
+      "humidity": 12.1
+    },
+    "rssi": -104,
+    "snr": 5.5
+  },
+  {
+    "time": "2026-01-28T12:25:07.239+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.5,
+      "humidity": 12.3
+    },
+    "rssi": -103,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-28T12:40:07.402+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.8
+    },
+    "rssi": -108,
+    "snr": 6.5
+  },
+  {
+    "time": "2026-01-28T12:55:07.566+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "temperature": 21.6,
+      "eventType": "PERIODIC_REPORT",
+      "humidity": 12.2
+    },
+    "rssi": -102,
+    "snr": 8.2
+  },
+  {
+    "time": "2026-01-28T13:55:08.224+00:00",
+    "fPort": 1,
+    "battery": null,
+    "object_data": {
+      "humidity": 12.1,
+      "eventType": "PERIODIC_REPORT",
+      "temperature": 21.9
+    },
+    "rssi": -101,
+    "snr": 8.8
+  }
+];
+        let plants = JSON.parse(localStorage.getItem('plants') || '[]');
+        let currentTemp = null;
+        let currentMonth = new Date();
+        let selectedDate = null;
+        let selectedReading = null;
+
+        // Group data by date
+        function groupDataByDate() {
+            const grouped = {};
+            allData.forEach(record => {
+                if (record.object_data.temperature !== undefined) {
+                    const date = new Date(record.time);
+                    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    if (!grouped[dateKey]) {
+                        grouped[dateKey] = [];
+                    }
+                    grouped[dateKey].push(record);
+                }
+            });
+            return grouped;
+        }
+
+        const dataByDate = groupDataByDate();
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            // Update month display
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Add previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayEl = createDayElement(day, month - 1, year, true);
+                grid.appendChild(dayEl);
+            }
+
+            // Add current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = createDayElement(day, month, year, false);
+                grid.appendChild(dayEl);
+            }
+
+            // Add next month days to fill grid
+            const remainingCells = 42 - (firstDay + daysInMonth);
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayEl = createDayElement(day, month + 1, year, true);
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function createDayElement(day, month, year, isOtherMonth) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+            dayEl.textContent = day;
+
+            if (isOtherMonth) {
+                dayEl.classList.add('other-month');
+            }
+
+            // Check if this date has data
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (dataByDate[dateKey]) {
+                dayEl.classList.add('has-data');
+                dayEl.onclick = () => selectDate(year, month, day);
+            }
+
+            // Check if selected
+            if (selectedDate && 
+                selectedDate.getDate() === day && 
+                selectedDate.getMonth() === month && 
+                selectedDate.getFullYear() === year) {
+                dayEl.classList.add('selected');
+            }
+
+            return dayEl;
+        }
+
+        function selectDate(year, month, day) {
+            selectedDate = new Date(year, month, day);
+            selectedReading = null;
+            renderCalendar();
+            showTimePicker();
+        }
+
+        function showTimePicker() {
+            const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+            const readings = dataByDate[dateKey] || [];
+
+            const timePicker = document.getElementById('timePicker');
+            const timeSlots = document.getElementById('timeSlots');
+            
+            if (readings.length === 0) {
+                timePicker.style.display = 'none';
+                return;
+            }
+
+            timePicker.style.display = 'block';
+            timeSlots.innerHTML = '';
+
+            readings.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+            readings.forEach((reading, index) => {
+                const time = new Date(reading.time);
+                const slot = document.createElement('div');
+                slot.className = 'time-slot';
+                
+                const timeStr = time.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                const temp = reading.object_data.temperature;
+                slot.innerHTML = `
+                    <div>${timeStr}</div>
+                    <div class="temp-preview">${temp.toFixed(1)}°C</div>
+                `;
+                
+                slot.onclick = () => selectReading(reading, slot);
+                timeSlots.appendChild(slot);
+            });
+        }
+
+        function selectReading(reading, slotElement) {
+            selectedReading = reading;
+            
+            // Update UI
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            slotElement.classList.add('selected');
+            
+            document.getElementById('confirmBtn').disabled = false;
+        }
+
+        function confirmSelection() {
+            if (!selectedReading) return;
+
+            currentTemp = selectedReading.object_data.temperature;
+            
+            // Display temperature
+            document.getElementById('temperatureDisplay').style.display = 'block';
+            document.getElementById('tempValue').textContent = currentTemp.toFixed(1) + '°C';
+            document.getElementById('tempTimestamp').textContent = 
+                'Recorded: ' + formatDate(selectedReading.time);
+
+            // Update plant risk assessments
+            renderPlants();
+
+            // Scroll to temperature display
+            document.getElementById('temperatureDisplay').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+
+        function previousMonth() {
+            currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+            renderCalendar();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function calculateDanger(plant, temp) {
+            if (temp === null) return { level: 'unknown', label: 'Unknown' };
+            
+            const minTemp = parseFloat(plant.minTemp);
+            const maxTemp = parseFloat(plant.maxTemp);
+            
+            if (temp >= minTemp && temp <= maxTemp) {
+                return { level: 'low', label: 'Safe' };
+            }
+            
+            const belowMin = minTemp - temp;
+            const aboveMax = temp - maxTemp;
+            const maxDeviation = Math.max(belowMin, aboveMax);
+            
+            if (maxDeviation <= 2) {
+                return { level: 'moderate', label: 'Caution' };
+            } else if (maxDeviation <= 5) {
+                return { level: 'high', label: 'Warning' };
+            } else {
+                return { level: 'critical', label: 'Critical' };
+            }
+        }
+
+        function renderPlants() {
+            const grid = document.getElementById('plantsGrid');
+            
+            if (plants.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🪴</div>
+                        <p>No plants added yet. Click "Add Plant" to start monitoring.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = plants.map((plant, index) => {
+                const danger = calculateDanger(plant, currentTemp);
+                const isImage = plant.image && (plant.image.startsWith('http') || plant.image.startsWith('data:'));
+                
+                return `
+                    <div class="plant-card">
+                        <div class="plant-image">
+                            ${isImage ? 
+                                `<img src="${plant.image}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='🌿'">` : 
+                                plant.image || '🌿'
+                            }
+                        </div>
+                        <span class="danger-badge danger-${danger.level}">${danger.label}</span>
+                        <div class="plant-content">
+                            <h3 class="plant-name">${plant.name}</h3>
+                            ${plant.scientific ? `<div class="plant-scientific">${plant.scientific}</div>` : ''}
+                            ${plant.description ? `<p class="plant-details">${plant.description}</p>` : ''}
+                            <div class="temp-range">
+                                <div class="temp-range-label">Safe Temperature Range</div>
+                                <div>${plant.minTemp}°C - ${plant.maxTemp}°C</div>
+                            </div>
+                            ${currentTemp !== null ? `
+                                <div class="temp-range" style="background: ${getDangerColor(danger.level)}15;">
+                                    <div class="temp-range-label">Current Status</div>
+                                    <div>${getDangerMessage(plant, currentTemp, danger.level)}</div>
+                                </div>
+                            ` : ''}
+                            <button class="delete-btn" onclick="deletePlant(${index})">Delete Plant</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getDangerColor(level) {
+            const colors = {
+                low: '#2d5f3d',
+                moderate: '#e6934e',
+                high: '#c86b4a',
+                critical: '#d64545',
+                unknown: '#6b6b6b'
+            };
+            return colors[level] || colors.unknown;
+        }
+
+        function getDangerMessage(plant, temp, level) {
+            const minTemp = parseFloat(plant.minTemp);
+            const maxTemp = parseFloat(plant.maxTemp);
+            
+            if (level === 'low') {
+                return '✓ Plant is within safe temperature range';
+            } else if (temp < minTemp) {
+                const diff = (minTemp - temp).toFixed(1);
+                return `⚠️ Too cold by ${diff}°C`;
+            } else {
+                const diff = (temp - maxTemp).toFixed(1);
+                return `⚠️ Too hot by ${diff}°C`;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('plantModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('plantModal').classList.remove('active');
+            document.getElementById('plantForm').reset();
+        }
+
+        function addPlant(event) {
+            event.preventDefault();
+            
+            const plant = {
+                name: document.getElementById('plantName').value,
+                scientific: document.getElementById('plantScientific').value,
+                description: document.getElementById('plantDescription').value,
+                image: document.getElementById('plantImage').value || '🌿',
+                minTemp: document.getElementById('plantMinTemp').value,
+                maxTemp: document.getElementById('plantMaxTemp').value
+            };
+
+            plants.push(plant);
+            localStorage.setItem('plants', JSON.stringify(plants));
+            
+            closeModal();
+            renderPlants();
+        }
+
+        function deletePlant(index) {
+            if (confirm('Are you sure you want to delete this plant?')) {
+                plants.splice(index, 1);
+                localStorage.setItem('plants', JSON.stringify(plants));
+                renderPlants();
+            }
+        }
+
+        // Initial render
+        renderCalendar();
+        renderPlants();
+    </script>
+</body>
+</html>
